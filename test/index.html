@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-debug.js"></script>
+		<script src="/src/ko.pausableComputed.js"></script>
+		<script src="main.js"></script>
+	</head>
+	<body>
+		<div id="test">
+			<span data-bind="text: a"></span>
+			<span>+</span>
+			<span data-bind="text: b"></span>
+			<span>=</span>
+			<span data-bind="text: c"></span>
+			<br/>
+			
+			<span>Evaluations: </span>
+			<span data-bind="text: evaluationCnt"></span>
+			<br/>
+
+			<button data-bind="click: update">Update</button>
+			<button data-bind="click: pause, text: buttonText"></button>
+		</div>
+	</body>
+</html>
