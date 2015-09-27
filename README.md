@@ -4,7 +4,8 @@ Knockoutjs extension. Makes it possible to synchronously delay a computed observ
 ## Example
 This example shows how normal changes to two observables will trigger two evaluations of a computed observable. When the computed is paused the evaluation will only trigger once.
 
-`(function () {
+```
+(function () {
 	"use strict";
 
 	function ViewModel() {
@@ -38,7 +39,8 @@ This example shows how normal changes to two observables will trigger two evalua
 		var vm = new ViewModel();
 		ko.applyBindings(vm, document.getElementById("test"));
 	};
-}());`
+}());
+```
 
 Try it out here: https://rawgit.com/jonalslund/ko.pausableComputed/master/example/index.html
 
