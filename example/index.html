@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-debug.js"></script>
-		<script src="/src/ko.pausableComputed.js"></script>
+		<script src="../src/ko.pausableComputed.js"></script>
 		<script src="main.js"></script>
 	</head>
 	<body>
@@ -17,9 +17,13 @@
 			<span>Evaluations: </span>
 			<span data-bind="text: evaluationCnt"></span>
 			<br/>
+			<br/>
 
-			<button data-bind="click: update">Update</button>
-			<button data-bind="click: pause, text: buttonText"></button>
+			<button data-bind="click: normalIncrement">Normal Increment</button>
+			<i>Increments both operants (a, b), which will trigger two evaluations of the result (c)</i>
+			<br/>
+			<button data-bind="click: pausedIncrement">Paused Increment</button>
+			<i>Increments both operants (a, b), but will pause/un-pause so only one evalution is triggered on the result (c)</i>
 		</div>
 	</body>
 </html>
