@@ -5,7 +5,9 @@
 		this.evaluationCnt = ko.observable(0);
 		this.a = ko.observable(0);
 		this.b = ko.observable(0);
+		// create the computed observable with the ability to pause
 		this.c = ko.pausableComputed(function () {
+			// track evaluations
 			this.evaluationCnt(this.evaluationCnt() + 1);
 			return this.a() + this.b();
 		}, this);
