@@ -1,5 +1,14 @@
 
-(function (ko) {
+(function (factory) {
+	"use strict";
+	if (typeof module === 'object' && typeof module.exports === 'object') {
+		// Node.js/CommonJS
+		module.exports = factory(require('knockout'));
+	} else {
+		// Browser
+		factory(ko);
+	}
+}(function (ko) {
 	"use strict";
 	ko.pausableComputed = function (evaluatorFunctionOrOptions, evaluatorFunctionTarget, options) {
 		var paused = false,
@@ -74,7 +83,8 @@
 		
 		return computed;
 	};
-}(ko = ko || {}));
+	return ko;
+}));
 
 
 
