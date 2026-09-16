@@ -1,0 +1,23 @@
+{
+  "name": "ko.pausableComputed",
+  "version": "1.0.0",
+  "description": "Knockoutjs extension. Makes it possible to synchronously delay a computed observable's evaluation and ensure that it's only evaluated once when re-enabled.",
+  "main": "src/ko.pausableComputed.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "author": "jonalslund",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "knockout": "^3.5.0"
+  },
+  "keywords": [
+    "knockout",
+    "knockoutjs",
+    "computed",
+    "pausable"
+  ]
+}
