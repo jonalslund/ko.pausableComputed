@@ -1,5 +1,5 @@
 # ko.pausableComputed
-Knockoutjs extension. Makes it possible to synchronously delay a computed observable's evaluation and insure that it's only evaluated once when re-enabled.
+Knockoutjs extension. Makes it possible to synchronously delay a computed observable's evaluation and ensure that it's only evaluated once when re-enabled.
 
 ## Example
 This example shows how normal changes to two observables will trigger two evaluations of a computed observable. When the computed is paused the evaluation will only trigger once.

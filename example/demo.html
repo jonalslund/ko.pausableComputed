@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ko.pausableComputed - The Coffee Shop Saga</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.0/knockout-min.js"></script>
+    <script src="../src/ko.pausableComputed.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            text-align: center;
+            color: #f0f0f0;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        .demo-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .demo-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .scenario {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .stat-card.paused {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .code-snippet {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-comment { color: #6a9955; }
+        .code-keyword { color: #c678dd; }
+        .code-string { color: #98c379; }
+        .code-function { color: #d19a66; }
+        .character {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 60px;
+            font-size: 2em;
+            margin: 0 5px;
+            background: white;
+            border: 3px solid #667eea;
+        }
+        .barista { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .customer { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .coffee-cup {
+            display: inline-block;
+            font-size: 1.5em;
+            animation: steam 2s infinite;
+        }
+        @keyframes steam {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .highlight {
+            background: #ffd700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #333;
+        }
+        .explanation {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2196F3;
+        }
+        .advanced-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+        .customer-queue {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>☕ ko.pausableComputed: The Coffee Shop Saga</h1>
+        <p class="subtitle">Because your JavaScript deserves a break, but not your users' patience</p>
+
+        <!-- ============================================
+             DEMO 1: The Simple Case - The Overworked Barista
+             ============================================ -->
+        <div class="demo-section">
+            <h2>⚡ Demo 1: The Basic Pause <span class="advanced-badge">Simple</span></h2>
+            
+            <div class="scenario">
+                <strong>Scenario:</strong> Your barista <span class="character barista">B</span> is making coffee so fast that 
+                the cash register <span class="character">$</span> can't keep up with the orders. 
+                Every time a customer orders, the register recalculates the total... but it's getting overwhelmed!
+            </div>
+
+            <div class="explanation">
+                <strong>Problem:</strong> Without pausing, every change to orders triggers a recalculation. 
+                With 5 customers each ordering 3 items, that's 15 recalculations!
+            </div>
+
+            <div class="controls">
+                <button data-bind="click: addCustomer, disable: isProcessing()">Add Customer (Order)</button>
+                <button data-bind="click: processOrders, disable: isProcessing()">Process All Orders</button>
+                <button data-bind="click: resetDemo1">Reset</button>
+            </div>
+
+            <div class="customer-queue" data-bind="foreach: customers">
+                <span class="character customer" data-bind="text: $data"></span>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="label">Customers Waiting</div>
+                    <div class="value" data-bind="text: customers().length"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Register Recalculations</div>
+                    <div class="value" data-bind="text: recalcCount()"></div>
+                </div>
+                <div class="stat-card" data-bind="css: { paused: isPaused() }">
+                    <div class="label">Register Status</div>
+                    <div class="value" data-bind="text: isPaused() ? 'PAUSED' : 'ACTIVE'"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Total Revenue</div>
+                    <div class="value" data-bind="text: '$' + totalRevenue()"></div>
+                </div>
+            </div>
+
+            <div class="code-snippet">
+                <span class="code-comment">// Create a pausable computed for the cash register</span><br>
+                <span class="code-keyword">this</span>.totalRevenue = ko.pausableComputed(<span class="code-function">function</span>() {
+                    <span class="code-comment">// This only runs when NOT paused</span><br>
+                    <span class="code-keyword">return</span> <span class="code-keyword">this</span>.customers().length * 5; <span class="code-comment">// $5 per customer</span><br>
+                }, <span class="code-keyword">this</span>);
+                <br><br>
+                <span class="code-comment">// When processing orders, pause the register</span><br>
+                <span class="code-keyword">this</span>.totalRevenue.<span class="code-function">paused</span>(<span class="code-keyword">true</span>);
+                <br>
+                <span class="code-comment">// Add all customers (no recalculations!)</span><br>
+                <span class="code-keyword">for</span>(let i = 0; i < 10; i++) <span class="code-keyword">this</span>.customers.push(i);
+                <br>
+                <span class="code-comment">// Unpause and recalculate ONCE</span><br>
+                <span class="code-keyword">this</span>.totalRevenue.<span class="code-function">paused</span>(<span class="code-keyword">false</span>);
+            </div>
+        </div>
+
+        <!-- ============================================
+             DEMO 2: The Advanced Case - The Chaotic Morning Rush
+             ============================================ -->
+        <div class="demo-section">
+            <h2>🎭 Demo 2: The Morning Rush <span class="advanced-badge">Advanced</span></h2>
+            
+            <div class="scenario">
+                <strong>Scenario:</strong> It's 7:30 AM. The coffee shop is chaos. 
+                Barista <span class="character barista">B</span> is making coffee, 
+                the oven <span class="character" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white;">O</span> is baking pastries, 
+                and the blender <span class="character" style="background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%); color: white;">🌀</span> is making smoothies.
+                <br>
+                Each machine triggers the "Shop Noise Level" calculator. 
+                During the rush, you want to <strong>batch all changes</strong> and only update the noise level once!
+            </div>
+
+            <div class="explanation">
+                <strong>Problem:</strong> Every machine change triggers noise recalculation. 
+                With 10 machines each changing 5 times, that's 50 recalculations! 
+                <br>
+                <strong>Solution:</strong> Use pausable computed to batch all changes during the rush hour.
+            </div>
+
+            <div class="grid-2col">
+                <div>
+                    <h3>Manual Control</h3>
+                    <div class="controls">
+                        <button data-bind="click: toggleRushHour">Toggle Rush Hour Mode</button>
+                        <button data-bind="click: randomizeMachines">Simulate Chaos</button>
+                        <button data-bind="click: resetDemo2">Reset</button>
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="label">Noise Level</div>
+                            <div class="value" data-bind="text: noiseLevel()"></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Recalculations</div>
+                            <div class="value" data-bind="text: rushRecalcCount()"></div>
+                        </div>
+                        <div class="stat-card" data-bind="css: { paused: rushNoiseLevel.paused() }">
+                            <div class="label">Noise Calculator</div>
+                            <div class="value" data-bind="text: rushNoiseLevel.paused() ? 'PAUSED' : 'ACTIVE'"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>Reactive Control (Future Feature)</h3>
+                    <p style="color: #666; font-style: italic;">This would use the proposed <code>pauseControl</code> option:</p>
+                    <div class="code-snippet" style="font-size: 0.8em;">
+                        <span class="code-comment">// Noise level pauses automatically during rush hour</span><br>
+                        <span class="code-keyword">this</span>.isRushHour = ko.observable(<span class="code-keyword">false</span>);
+                        <br>
+                        <span class="code-keyword">this</span>.noiseLevel = ko.pausableComputed(<span class="code-function">function</span>() {
+                            <span class="code-keyword">return</span> <span class="code-keyword">this</span>.coffeeNoise() + <span class="code-keyword">this</span>.ovenNoise() + <span class="code-keyword">this</span>.blenderNoise();
+                        }, {
+                            <br>&nbsp;&nbsp;<span class="code-function">pauseControl</span>: <span class="code-keyword">this</span>.isRushHour
+                        });
+                        <br><br>
+                        <span class="code-comment">// Now: isRushHour(true) automatically pauses noiseLevel!</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="customer-queue" style="justify-content: flex-start; gap: 20px;">
+                <div>
+                    <div style="text-align: center;">☕ Coffee</div>
+                    <span class="character barista" data-bind="text: coffeeNoise"></span>
+                </div>
+                <div>
+                    <div style="text-align: center;">🍞 Oven</div>
+                    <span class="character" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white;" data-bind="text: ovenNoise"></span>
+                </div>
+                <div>
+                    <div style="text-align: center;">🌀 Blender</div>
+                    <span class="character" style="background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%); color: white;" data-bind="text: blenderNoise"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             DEMO 3: The Ultimate Challenge - Batch Operations
+             ============================================ -->
+        <div class="demo-section">
+            <h2>🏆 Demo 3: The Franchise Manager <span class="advanced-badge">Pro</span></h2>
+            
+            <div class="scenario">
+                <strong>Scenario:</strong> You're managing <span class="highlight">multiple coffee shops</span>. 
+                Each shop has its own noise level calculator. 
+                When you want to update all shops simultaneously (e.g., for a company-wide "quiet hour"), 
+                you need to pause ALL noise calculators at once!
+            </div>
+
+            <div class="explanation">
+                <strong>Problem:</strong> Pausing each shop's calculator individually is tedious. 
+                <br>
+                <strong>Solution:</strong> Use the proposed <code>pauseAll</code> and <code>resumeAll</code> batch API!
+            </div>
+
+            <div class="controls">
+                <button data-bind="click: toggleAllShops">Pause/Resume All Shops</button>
+                <button data-bind="click: randomizeAllShops">Randomize All Shop Activity</button>
+                <button data-bind="click: resetDemo3">Reset</button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="label">Total Recalculations</div>
+                    <div class="value" data-bind="text: batchRecalcCount()"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">All Paused?</div>
+                    <div class="value" data-bind="text: allPaused() ? 'YES' : 'NO'"></div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 15px 0;">
+                <!-- ko foreach: shops -->
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 2px solid #667eea;">
+                    <h4 style="color: #667eea; margin-bottom: 10px;" data-bind="text: 'Shop ' + ($index() + 1)"></h4>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <span class="character barista" data-bind="text: coffeeLevel"></span>
+                        <span class="character customer" data-bind="text: customerCount"></span>
+                        <span class="coffee-cup">☕</span>
+                    </div>
+                    <div style="font-size: 0.9em;">
+                        <div><strong>Noise:</strong> <span data-bind="text: noiseLevel()"></span></div>
+                        <div><strong>Recalcs:</strong> <span data-bind="text: recalcCount()"></span></div>
+                        <div><strong>Status:</strong> <span data-bind="text: noiseLevel.paused() ? '⏸️ PAUSED' : '▶️ ACTIVE'"></span></div>
+                    </div>
+                </div>
+                <!-- /ko -->
+            </div>
+
+            <div class="code-snippet">
+                <span class="code-comment">// Create pausable computeds for each shop</span><br>
+                <span class="code-keyword">this</span>.shops = shops.map(shop => ({
+                    <br>&nbsp;&nbsp;noiseLevel: ko.pausableComputed(<span class="code-function">function</span>() {
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">return</span> shop.coffeeLevel() * shop.customerCount();
+                    <br>&nbsp;&nbsp;})
+                }));
+                <br><br>
+                <span class="code-comment">// Pause ALL shops at once</span><br>
+                ko.pausableComputed.<span class="code-function">pauseAll</span>(<span class="code-keyword">this</span>.shops.map(s => s.noiseLevel));
+                <br><br>
+                <span class="code-comment">// Make all your changes...</span><br>
+                <span class="code-comment">// Then resume ALL at once</span><br>
+                ko.pausableComputed.<span class="code-function">resumeAll</span>(<span class="code-keyword">this</span>.shops.map(s => s.noiseLevel));
+            </div>
+        </div>
+
+        <div class="demo-section" style="text-align: center; padding: 40px;">
+            <h2 style="color: #667eea; margin-bottom: 20px;">The Moral of the Story</h2>
+            <p style="font-size: 1.2em; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+                Just like a good barista knows when to <strong>pause</strong> and let the coffee breathe,
+                a good developer knows when to <strong>pause</strong> computations and let the UI catch up.
+                <br><br>
+                With <code>ko.pausableComputed</code>, you can batch changes, prevent unnecessary recalculations,
+                and keep your application as smooth as a perfectly pulled espresso shot. 
+                <span class="coffee-cup">☕</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DEMO 1: The Overworked Barista
+        // ============================================
+        function Demo1ViewModel() {
+            var self = this;
+            
+            self.customers = ko.observableArray([]);
+            self.recalcCount = ko.observable(0);
+            self.isProcessing = ko.observable(false);
+            self.isPaused = ko.observable(false);
+            
+            // The pausable computed - our cash register
+            self.totalRevenue = ko.pausableComputed(function() {
+                self.recalcCount(self.recalcCount() + 1);
+                return self.customers().length * 5; // $5 per customer
+            }, self);
+            
+            self.addCustomer = function() {
+                self.customers.push('👤');
+            };
+            
+            self.processOrders = function() {
+                self.isProcessing(true);
+                self.isPaused(true);
+                
+                // Simulate adding multiple customers
+                var interval = setInterval(function() {
+                    self.addCustomer();
+                }, 100);
+                
+                // After adding customers, unpause
+                setTimeout(function() {
+                    clearInterval(interval);
+                    self.isPaused(false);
+                    self.isProcessing(false);
+                }, 1500);
+            };
+            
+            self.resetDemo1 = function() {
+                self.customers([]);
+                self.recalcCount(0);
+                self.isProcessing(false);
+                self.totalRevenue.paused(false);
+            };
+            
+            // Track pause state
+            self.totalRevenue.paused.subscribe(function(isPaused) {
+                self.isPaused(isPaused);
+            });
+        }
+
+        // ============================================
+        // DEMO 2: The Morning Rush
+        // ============================================
+        function Demo2ViewModel() {
+            var self = this;
+            
+            self.coffeeNoise = ko.observable(0);
+            self.ovenNoise = ko.observable(0);
+            self.blenderNoise = ko.observable(0);
+            self.rushRecalcCount = ko.observable(0);
+            self.isRushHour = ko.observable(false);
+            
+            // The pausable computed - noise level calculator
+            self.rushNoiseLevel = ko.pausableComputed(function() {
+                self.rushRecalcCount(self.rushRecalcCount() + 1);
+                return self.coffeeNoise() + self.ovenNoise() + self.blenderNoise();
+            }, self);
+            
+            // Computed for display
+            self.noiseLevel = ko.computed(function() {
+                return self.rushNoiseLevel();
+            });
+            
+            self.toggleRushHour = function() {
+                self.isRushHour(!self.isRushHour());
+                self.rushNoiseLevel.paused(self.isRushHour());
+            };
+            
+            self.randomizeMachines = function() {
+                self.coffeeNoise(Math.floor(Math.random() * 10));
+                self.ovenNoise(Math.floor(Math.random() * 10));
+                self.blenderNoise(Math.floor(Math.random() * 10));
+            };
+            
+            self.resetDemo2 = function() {
+                self.coffeeNoise(0);
+                self.ovenNoise(0);
+                self.blenderNoise(0);
+                self.rushRecalcCount(0);
+                self.isRushHour(false);
+                self.rushNoiseLevel.paused(false);
+            };
+        }
+
+        // ============================================
+        // DEMO 3: The Franchise Manager
+        // ============================================
+        function ShopViewModel() {
+            var self = this;
+            
+            self.coffeeLevel = ko.observable(Math.floor(Math.random() * 5) + 1);
+            self.customerCount = ko.observable(Math.floor(Math.random() * 10) + 1);
+            self.recalcCount = ko.observable(0);
+            
+            self.noiseLevel = ko.pausableComputed(function() {
+                self.recalcCount(self.recalcCount() + 1);
+                return self.coffeeLevel() * self.customerCount();
+            }, self);
+        }
+
+        function Demo3ViewModel() {
+            var self = this;
+            
+            self.shops = ko.observableArray([
+                new ShopViewModel(),
+                new ShopViewModel(),
+                new ShopViewModel(),
+                new ShopViewModel()
+            ]);
+            
+            self.batchRecalcCount = ko.computed(function() {
+                return self.shops().reduce(function(total, shop) {
+                    return total + shop.recalcCount();
+                }, 0);
+            });
+            
+            self.allPaused = ko.computed(function() {
+                return self.shops().every(function(shop) {
+                    return shop.noiseLevel.paused();
+                });
+            });
+            
+            self.toggleAllShops = function() {
+                var allNoiseLevels = self.shops().map(function(shop) {
+                    return shop.noiseLevel;
+                });
+                
+                var allPaused = self.allPaused();
+                allNoiseLevels.forEach(function(noiseLevel) {
+                    noiseLevel.paused(!allPaused);
+                });
+            };
+            
+            self.randomizeAllShops = function() {
+                self.shops().forEach(function(shop) {
+                    shop.coffeeLevel(Math.floor(Math.random() * 5) + 1);
+                    shop.customerCount(Math.floor(Math.random() * 10) + 1);
+                });
+            };
+            
+            self.resetDemo3 = function() {
+                self.shops().forEach(function(shop) {
+                    shop.coffeeLevel(Math.floor(Math.random() * 5) + 1);
+                    shop.customerCount(Math.floor(Math.random() * 10) + 1);
+                    shop.recalcCount(0);
+                    shop.noiseLevel.paused(false);
+                });
+            };
+        }
+
+        // ============================================
+        // Main ViewModel
+        // ============================================
+        function MainViewModel() {
+            this.demo1 = new Demo1ViewModel();
+            this.demo2 = new Demo2ViewModel();
+            this.demo3 = new Demo3ViewModel();
+        }
+
+        // Apply bindings
+        ko.applyBindings(new MainViewModel(), document.body);
+    </script>
+</body>
+</html>

@@ -20,7 +20,7 @@
 		this.pausedIncrement = function () {
 			// disable evaluation
 			this.c.paused(true);
-			// update denpendent observables
+			// update dependent observables
 			this.normalIncrement();
 			// re-enable evaluation and trigger re-evalation
 			this.c.paused(false);
