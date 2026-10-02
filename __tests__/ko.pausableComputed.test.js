@@ -374,5 +374,32 @@ describe('ko.pausableComputed', () => {
 
       expect(notificationCount).toBe(0);
     });
+
+    it('should clean up internal subscriptions on dispose', () => {
+      const source = ko.observable(1);
+      const computed = ko.pausableComputed(() => source());
+      
+      const subscriptionsBefore = source.getSubscriptionsCount();
+      expect(subscriptionsBefore).toBeGreaterThan(0);
+      
+      computed.dispose();
+      
+      const subscriptionsAfter = source.getSubscriptionsCount();
+      expect(subscriptionsAfter).toBe(0);
+    });
+
+    it('should not leak memory when creating and disposing many pausable computeds', () => {
+      const source = ko.observable(0);
+      const initialSubscriptions = source.getSubscriptionsCount();
+      
+      for (let i = 0; i < 100; i++) {
+        source(i);
+        const computed = ko.pausableComputed(() => source());
+        computed.dispose();
+      }
+      
+      const finalSubscriptions = source.getSubscriptionsCount();
+      expect(finalSubscriptions).toBe(initialSubscriptions);
+    });
   });
 });
